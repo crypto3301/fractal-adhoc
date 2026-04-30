@@ -1,22 +1,19 @@
 package graph
 
-// Node — узел Ad-Hoc сети.
-type Node struct {
-	ID    int    `json:"id"`
-	Label string `json:"label"` // иерархическая метка, напр. "2.1.0"
+// NodeData — узел с числовым ID и буквенным иерархическим адресом.
+// Адрес строится из символов a,b,c,d — по одному на каждый уровень.
+// Пример: "abca" — копия a → подкопия b → подподкопия c → вершина a.
+type NodeData struct {
+	ID   int    `json:"id"`
+	Addr string `json:"addr"`
 }
 
-// Edge — ребро между двумя узлами.
-type Edge struct {
-	From  int `json:"from"`
-	To    int `json:"to"`
-	Level int `json:"level"` // уровень иерархии: 1=базовый K4, ORDER=внешний
-}
-
-// GraphData — полный граф, передаваемый в браузер.
+// GraphData — полный граф, отправляемый в браузер.
+// Adj и NormPos — срезы, индексированные числовым ID узла (0..N-1).
 type GraphData struct {
-	Order      int          `json:"order"`
-	Nodes      []Node       `json:"nodes"`
-	Edges      []Edge       `json:"edges"`
-	FractalPos [][2]float64 `json:"fractalPos"` // нормированные позиции [0,1]²
+	Order   int          `json:"order"`   // порядок предфрактала
+	N       int          `json:"n"`       // реальное число узлов
+	Nodes   []NodeData   `json:"nodes"`   // список узлов
+	Adj     [][]int      `json:"adj"`     // adj[id] = список соседей
+	NormPos [][2]float64 `json:"normPos"` // normPos[id] = [x, y] в [0.05, 0.95]
 }

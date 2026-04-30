@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 
@@ -9,18 +10,20 @@ import (
 )
 
 func main() {
-	const order = 3
+	n := flag.Int("n", 64, "Начальное количество узлов (≥ 64)")
+	addr := flag.String("addr", ":8080", "Адрес сервера")
+	flag.Parse()
 
-	g := graph.Build(order)
+	if *n < 4 {
+		*n = 64
+	}
 
-	log.Printf(
-		"Предфрактальный граф K4 порядка %d: %d узлов, %d рёбер",
-		order, len(g.Nodes), len(g.Edges),
-	)
+	g := graph.Build(*n)
+	log.Printf("Предфрактальный граф K4 порядка %d: %d узлов", g.Order, g.N)
 
 	mux := http.NewServeMux()
 	server.RegisterHandlers(mux, g)
 
-	log.Println("Откройте в браузере: http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Printf("Откройте: http://localhost%s", *addr)
+	log.Fatal(http.ListenAndServe(*addr, mux))
 }

@@ -1,446 +1,547 @@
 package web
 
-// Page — минималистичный чёрно-белый дизайн
 const Page = `<!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Ad-Hoc Предфрактальная Сеть</title>
-    <style>
-        :root {
-            --bg: #000000;
-            --panel: #0a0a0a;
-            --text: #dddddd;
-            --gray: #aaaaaa;
-            --accent: #cccccc;
-        }
+<meta charset="UTF-8">
+<title>Ad-Hoc Предфрактальная Сеть</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+:root {
+  --black:  #0a0a0a;
+  --white:  #ffffff;
+  --grey1:  #f4f4f4;
+  --grey2:  #e0e0e0;
+  --grey3:  #a0a0a0;
+  --grey4:  #606060;
+  --mono:   'IBM Plex Mono', monospace;
+  --sans:   'IBM Plex Sans', sans-serif;
+}
 
-        body {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-            background: var(--bg);
-            color: var(--text);
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 14px;
-        }
+html, body { height: 100%; overflow: hidden; background: var(--white); color: var(--black); font-family: var(--sans); font-size: 13px; }
+body { display: flex; }
 
-        #sidebar {
-            width: 280px;
-            background: var(--panel);
-            border-right: 1px solid #222222;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 28px;
-            overflow-y: auto;
-        }
+/* ── Sidebar ── */
+#side {
+  width: 280px; min-width: 280px; height: 100vh;
+  border-right: 1px solid var(--grey2);
+  display: flex; flex-direction: column;
+  background: var(--white);
+  overflow-y: auto;
+}
 
-        h1 {
-            font-size: 18px;
-            font-weight: 500;
-            color: var(--accent);
-            letter-spacing: 0.5px;
-        }
+/* ── Canvas area ── */
+#wrap { flex: 1; position: relative; background: var(--grey1); overflow: hidden; }
+canvas { display: block; cursor: crosshair; }
 
-        /* Минималистичные карточки статистики */
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
+/* ── Sidebar blocks ── */
+.side-header { padding: 24px 24px 18px; border-bottom: 1px solid var(--grey2); }
+.side-header h1 { font-size: 14px; font-weight: 600; color: var(--black); letter-spacing: -.01em; }
+.side-header p  { font-size: 10px; color: var(--grey3); margin-top: 4px; font-family: var(--mono); letter-spacing: .06em; text-transform: uppercase; }
 
-        .stat {
-            padding: 12px 0;
-        }
+.side-section { padding: 16px 24px; border-bottom: 1px solid var(--grey2); display: flex; flex-direction: column; gap: 10px; }
+.sec-label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--grey3); }
 
-        .stat-value {
-            font-size: 32px;
-            font-weight: 600;
-            color: white;
-            line-height: 1;
-        }
+/* ── Stats ── */
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--grey2); border: 1px solid var(--grey2); }
+.stat { background: var(--white); padding: 10px 12px; text-align: center; }
+.sv { font-family: var(--mono); font-size: 20px; font-weight: 600; color: var(--black); line-height: 1; }
+.sl { font-size: 9px; color: var(--grey3); margin-top: 3px; text-transform: uppercase; letter-spacing: .08em; }
 
-        .stat-label {
-            font-size: 12px;
-            color: var(--gray);
-            margin-top: 4px;
-        }
+/* ── Tabs ── */
+.tabs { display: flex; border: 1px solid var(--black); }
+.tab {
+  flex: 1; padding: 8px 4px; text-align: center;
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase;
+  cursor: pointer; border: none; background: var(--white); color: var(--grey4);
+  border-right: 1px solid var(--black); transition: background .12s, color .12s;
+}
+.tab:last-child { border-right: none; }
+.tab:hover { background: var(--grey1); color: var(--black); }
+.tab.on { background: var(--black); color: var(--white); }
 
-        .section {
-            color: var(--gray);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
+/* ── Inputs ── */
+.row { display: flex; gap: 6px; align-items: center; }
+.row label { font-size: 11px; color: var(--grey4); white-space: nowrap; }
 
-        button {
-            width: 100%;
-            padding: 13px 16px;
-            margin-bottom: 8px;
-            background: transparent;
-            color: var(--text);
-            border: 1px solid #333333;
-            border-radius: 4px;
-            font-size: 13.5px;
-            cursor: pointer;
-            text-align: left;
-            transition: all 0.2s;
-        }
+input[type=number] {
+  flex: 1; padding: 8px 10px;
+  background: var(--grey1); border: 1px solid var(--grey2); border-radius: 0;
+  color: var(--black); font-family: var(--mono); font-size: 12px;
+  outline: none; transition: border-color .15s; min-width: 0;
+}
+input[type=number]:focus { border-color: var(--black); }
 
-        button:hover:not(:disabled) {
-            border-color: var(--accent);
-            color: white;
-        }
+select {
+  flex: 1; padding: 8px 28px 8px 10px;
+  background: var(--grey1)
+    url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23606060'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
+  border: 1px solid var(--grey2); border-radius: 0;
+  color: var(--black); font-family: var(--mono); font-size: 11px;
+  outline: none; cursor: pointer; min-width: 0;
+  appearance: none; -webkit-appearance: none;
+}
+select:focus { border-color: var(--black); }
 
-        button.active {
-            border-color: var(--accent);
-            color: white;
-            background: rgba(255,255,255,0.05);
-        }
+/* ── Buttons ── */
+.btn {
+  padding: 8px 14px; border: 1px solid var(--black);
+  background: var(--black); color: var(--white);
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase;
+  cursor: pointer; transition: background .12s, color .12s; border-radius: 0;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--white); color: var(--black); }
+.btn-full  { width: 100%; }
+.btn-ghost { background: var(--white); color: var(--black); }
+.btn-ghost:hover { background: var(--grey1); }
+.btn-danger { border-color: var(--black); }
 
-        button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
+/* ── Legend ── */
+.leg { display: flex; flex-direction: column; gap: 5px; }
+.li  { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--grey4); }
+.ld  { width: 8px; height: 8px; flex-shrink: 0; }
 
-        .legend {
-            display: flex;
-            flex-direction: column;
-            gap: 11px;
-            font-size: 13.5px;
-            color: var(--gray);
-        }
+/* ── Info panel ── */
+#info {
+  flex: 1; padding: 16px 24px;
+  font-size: 12px; line-height: 1.85; color: var(--grey4);
+  overflow-y: auto;
+}
+#info b    { color: var(--black); display: block; margin-bottom: 3px; }
+#info code {
+  background: var(--grey1); border: 1px solid var(--grey2);
+  padding: 1px 6px; font-family: var(--mono); font-size: 11px; color: var(--black);
+}
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+/* ── Stats bar (bottom) ── */
+.stats-bar { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--grey2); }
+.stat-b    { padding: 12px 24px; border-right: 1px solid var(--grey2); }
+.stat-b:last-child { border-right: none; }
+.stat-bv   { font-family: var(--mono); font-size: 18px; font-weight: 600; line-height: 1; }
+.stat-bl   { font-size: 9px; color: var(--grey3); text-transform: uppercase; letter-spacing: .08em; margin-top: 3px; }
 
-        .color-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        #info {
-            flex: 1;
-            background: transparent;
-            border: 1px solid #222222;
-            border-radius: 4px;
-            padding: 16px;
-            font-size: 13.2px;
-            line-height: 1.65;
-            color: var(--gray);
-            overflow-y: auto;
-        }
-
-        #canvas-container {
-            flex: 1;
-            position: relative;
-            background: #000000;
-        }
-
-        canvas {
-            display: block;
-        }
-
-        #status {
-            position: absolute;
-            top: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.85);
-            color: var(--accent);
-            padding: 9px 22px;
-            border-radius: 20px;
-            font-size: 13px;
-            border: 1px solid #222;
-            white-space: nowrap;
-            z-index: 10;
-        }
-    </style>
+/* ── Canvas label ── */
+#lbl {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  background: var(--white); color: var(--black);
+  padding: 6px 18px; font-family: var(--mono); font-size: 11px;
+  border: 1px solid var(--grey2); white-space: nowrap;
+  pointer-events: none; letter-spacing: .04em;
+}
+</style>
 </head>
 <body>
-    <div id="sidebar">
-        <h1>Ad-Hoc Предфрактальная Сеть</h1>
 
-        <div class="stats">
-            <div class="stat">
-                <div class="stat-value" id="nodes">—</div>
-                <div class="stat-label">Узлов</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value" id="edges">—</div>
-                <div class="stat-label">Рёбер</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value" id="order">—</div>
-                <div class="stat-label">Порядок</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value">K₄</div>
-                <div class="stat-label">Затравка</div>
-            </div>
-        </div>
+<div id="side">
+  <div class="side-header">
+    <h1>Ad-Hoc Предфрактальная Сеть</h1>
+    <p>Затравка K4 &nbsp;·&nbsp; Адресация a, b, c, d</p>
+  </div>
 
-        <div>
-            <div class="section">Этапы</div>
-            <button id="btn1" onclick="startPhase(1)">1. Случайное размещение узлов</button>
-            <button id="btn2" onclick="startPhase(2)" disabled>2. Построение Ad-Hoc сети</button>
-            <button id="btn3" onclick="startPhase(3)" disabled>3. Нормализованный вид</button>
-            <button onclick="resetAll()">Сбросить</button>
-        </div>
-
-        <div>
-            <div class="section">Информация об узле</div>
-            <div id="info">Наведите курсор на узел для просмотра информации</div>
-        </div>
+  <!-- Статистика -->
+  <div class="side-section">
+    <div class="sec-label">Статистика</div>
+    <div class="stats">
+      <div class="stat"><div class="sv" id="sn">—</div><div class="sl">Узлов</div></div>
+      <div class="stat"><div class="sv" id="se">—</div><div class="sl">Рёбер</div></div>
+      <div class="stat"><div class="sv" id="so">—</div><div class="sl">Порядок</div></div>
+      <div class="stat"><div class="sv">K₄</div><div class="sl">Затравка</div></div>
     </div>
+  </div>
 
-    <div id="canvas-container">
-        <div id="status">Загрузка графа...</div>
-        <canvas id="canvas"></canvas>
+  <!-- Режим -->
+  <div class="side-section">
+    <div class="sec-label">Режим отображения</div>
+    <div class="tabs">
+      <button class="tab on" id="tab-nodes" onclick="switchMode('nodes')">Узлы</button>
+      <button class="tab"    id="tab-adhoc" onclick="switchMode('adhoc')">Ad-Hoc</button>
+      <button class="tab"    id="tab-norm"  onclick="switchMode('norm')">Норм.</button>
     </div>
+  </div>
 
-    <script>
-        // ... (JS остаётся прежним, только минимальные правки)
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let W = 0, H = 0;
-        let graph = null;
-        let positions = [];
-        let targetPositions = [];
-        let nodeColors = [];
-        let phase = 0;
-        let edgeProgress = 0;
-        let hoveredNode = -1;
+  <!-- Параметры -->
+  <div class="side-section">
+    <div class="sec-label">Параметры</div>
+    <div class="row">
+      <label>Узлов</label>
+      <input type="number" id="nodeCount" value="64" min="64">
+    </div>
+    <button class="btn btn-full" onclick="changeNodeCount()">Сгенерировать</button>
+  </div>
 
-        const QUAD_COLORS = ['#cccccc', '#bbbbbb', '#aaaaaa', '#999999'];
+  <!-- Удаление -->
+  <div class="side-section">
+    <div class="sec-label">Управление узлами</div>
+    <select id="removeSelect"><option value="">— выберите узел —</option></select>
+    <div class="row">
+      <button class="btn btn-full btn-danger" onclick="removeSelectedNode()">Удалить узел</button>
+      <button class="btn btn-ghost" onclick="doReset()">Сброс</button>
+    </div>
+  </div>
 
-        function resize() {
-            const cont = canvas.parentElement;
-            W = cont.clientWidth;
-            H = cont.clientHeight;
-            canvas.width = W;
-            canvas.height = H;
+  <!-- Легенда -->
+  <div class="side-section">
+    <div class="sec-label">Иерархия копий</div>
+    <div class="leg">
+      <div class="li"><div class="ld" style="background:#222"></div>Копия a — верх-лево</div>
+      <div class="li"><div class="ld" style="background:#555"></div>Копия b — верх-право</div>
+      <div class="li"><div class="ld" style="background:#888"></div>Копия c — низ-лево</div>
+      <div class="li"><div class="ld" style="background:#bbb"></div>Копия d — низ-право</div>
+    </div>
+  </div>
+
+  <!-- Информация -->
+  <div id="info">Загрузка графа...</div>
+
+  <!-- Нижняя плашка -->
+  <div class="stats-bar">
+    <div class="stat-b"><div class="stat-bv" id="bn">—</div><div class="stat-bl">Активных узлов</div></div>
+    <div class="stat-b"><div class="stat-bv" id="be">—</div><div class="stat-bl">Активных рёбер</div></div>
+  </div>
+</div>
+
+<div id="wrap">
+  <span id="lbl">Подключение...</span>
+  <canvas id="c"></canvas>
+</div>
+
+<script>
+// ── Globals ─────────────────────────────────────────────────────
+var C   = document.getElementById('c');
+var ctx = C.getContext('2d');
+
+var graphData   = null;
+var activeGraph = null;
+var randomPos   = {};
+var mode        = 'nodes';
+var selected    = null;
+
+// Оттенки серого по первому символу адреса — монохромная схема
+var ADDR_COLORS = {a:'#111111', b:'#444444', c:'#777777', d:'#aaaaaa'};
+
+var BACKUP_MAP = {a:['d','b','c'], b:['c','a','d'], c:['b','a','d'], d:['a','b','c']};
+
+// ── Загрузка данных ──────────────────────────────────────────────
+function loadGraph(data) {
+  var nodes = [], adj = {}, addr = {}, normPos = {};
+  data.nodes.forEach(function(n) {
+    nodes.push(n.id);
+    adj[n.id]     = (data.adj[n.id]     || []).slice();
+    addr[n.id]    = n.addr;
+    normPos[n.id] = (data.normPos[n.id] || [0.5, 0.5]).slice();
+  });
+  graphData = {N: data.n, order: data.order, nodes: nodes, adj: adj, addr: addr, normPos: normPos};
+  initRandomPositions();
+  doReset();
+  document.getElementById('nodeCount').value = data.n;
+  document.getElementById('so').textContent  = data.order;
+  setLbl('Граф загружен — K4 порядка ' + data.order + ', ' + data.n + ' узлов');
+}
+
+// ── Позиции ──────────────────────────────────────────────────────
+function initRandomPositions() {
+  randomPos = {};
+  graphData.nodes.forEach(function(n) {
+    randomPos[n] = [0.05 + Math.random()*0.90, 0.05 + Math.random()*0.90];
+  });
+}
+
+function getPos(id) {
+  if (mode === 'norm') return activeGraph.normPos[id] || [0.5, 0.5];
+  return randomPos[id] || [0.5, 0.5];
+}
+
+// ── Resize ───────────────────────────────────────────────────────
+function resizeCanvas() {
+  var wrap = document.getElementById('wrap');
+  C.width  = wrap.clientWidth;
+  C.height = wrap.clientHeight;
+}
+
+// ── Draw ─────────────────────────────────────────────────────────
+function draw() {
+  if (!activeGraph) return;
+  ctx.clearRect(0, 0, C.width, C.height);
+
+  if (mode === 'adhoc' || mode === 'norm') {
+    activeGraph.nodes.forEach(function(i) {
+      var p1 = getPos(i);
+      var x1 = p1[0] * C.width;
+      var y1 = p1[1] * C.height;
+      (activeGraph.adj[i] || []).forEach(function(j) {
+        if (j <= i) return;
+        var p2  = getPos(j);
+        var x2  = p2[0] * C.width;
+        var y2  = p2[1] * C.height;
+        var sel = selected !== null && (i === selected || j === selected);
+        ctx.strokeStyle = sel ? '#0a0a0a' : '#c8c8c8';
+        ctx.lineWidth   = sel ? 2 : 1;
+        ctx.globalAlpha = sel ? 1 : 0.8;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        if (mode === 'adhoc') {
+          var mx = (x1+x2)/2 + Math.sin(i+j) * 24;
+          var my = (y1+y2)/2 + Math.cos(i+j) * 24;
+          ctx.quadraticCurveTo(mx, my, x2, y2);
+        } else {
+          ctx.lineTo(x2, y2);
         }
+        ctx.stroke();
+      });
+    });
+    ctx.globalAlpha = 1;
+  }
 
-        function toScreen(x, y) {
-            const pad = 80;
-            return [pad + x*(W - 2*pad), pad + y*(H - 2*pad)];
-        }
+  activeGraph.nodes.forEach(function(i) {
+    var p = getPos(i);
+    var x = p[0] * C.width;
+    var y = p[1] * C.height;
 
-        function getNodeColor(id) {
-            return QUAD_COLORS[Math.floor(id / (graph.nodes.length / 4)) % 4];
-        }
+    var isSel  = (i === selected);
+    var isNeib = selected !== null && (activeGraph.adj[selected] || []).indexOf(i) >= 0;
+    var addrStr    = activeGraph.addr[i] || 'a';
+    var accentColor = ADDR_COLORS[addrStr[0]] || '#333';
 
-        function draw() {
-            ctx.clearRect(0, 0, W, H);
-            if (phase >= 3) drawGrid();
-            if (phase >= 2) drawEdges();
-            drawNodes();
-        }
+    // Узел: белый круг с чёрной обводкой
+    // Выбранный: инвертирован (чёрный круг с белым ID)
+    if (isSel) { ctx.shadowBlur = 12; ctx.shadowColor = 'rgba(0,0,0,0.25)'; }
 
-        function drawGrid() {
-            ctx.strokeStyle = '#1a1a1a';
-            ctx.lineWidth = 1;
-            const s = 4;
-            for (let i = 0; i <= s; i++) {
-                const x = 80 + (i/s)*(W-160);
-                ctx.beginPath(); ctx.moveTo(x,80); ctx.lineTo(x,H-80); ctx.stroke();
-                const y = 80 + (i/s)*(H-160);
-                ctx.beginPath(); ctx.moveTo(80,y); ctx.lineTo(W-80,y); ctx.stroke();
-            }
-        }
+    ctx.fillStyle   = isSel ? '#0a0a0a' : '#ffffff';
+    ctx.strokeStyle = isSel ? '#0a0a0a' : (isNeib ? '#0a0a0a' : accentColor);
+    ctx.lineWidth   = isSel ? 2 : (isNeib ? 2 : 1.5);
+    ctx.beginPath();
+    ctx.arc(x, y, 13, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
 
-        function drawEdges() {
-            const n = Math.floor(edgeProgress);
-            ctx.lineCap = 'round';
-            for (let i = 0; i < n; i++) {
-                const e = graph.edges[i];
-                const a = positions[e.from];
-                const b = positions[e.to];
-                ctx.strokeStyle = nodeColors[e.from];
-                ctx.globalAlpha = 0.25 + e.level * 0.2;
-                ctx.lineWidth = 1.2;
-                ctx.beginPath();
-                ctx.moveTo(a[0], a[1]);
-                ctx.lineTo(b[0], b[1]);
-                ctx.stroke();
-            }
-            ctx.globalAlpha = 1;
-        }
+    ctx.fillStyle    = isSel ? '#ffffff' : '#0a0a0a';
+    ctx.font         = 'bold 10px "IBM Plex Mono", monospace';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(i.toString(), x, y);
 
-        function drawNodes() {
-            const r = phase >= 3 ? 5.5 : 7.5;
-            for (let i = 0; i < graph.nodes.length; i++) {
-                const p = positions[i];
-                const col = nodeColors[i];
+    // Адрес над выбранным узлом
+    if (isSel) {
+      ctx.fillStyle = '#0a0a0a';
+      ctx.font      = '10px "IBM Plex Mono", monospace';
+      ctx.fillText(addrStr, x, y - 22);
+    }
+  });
+}
 
-                if (i === hoveredNode) {
-                    ctx.shadowBlur = 25;
-                    ctx.shadowColor = '#ffffff';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.beginPath(); ctx.arc(p[0], p[1], r+7, 0, Math.PI*2); ctx.fill();
-                }
+// ── Find node ────────────────────────────────────────────────────
+function findNode(mx, my) {
+  for (var k = 0; k < activeGraph.nodes.length; k++) {
+    var i = activeGraph.nodes[k];
+    var p = getPos(i);
+    var dx = p[0]*C.width  - mx;
+    var dy = p[1]*C.height - my;
+    if (Math.sqrt(dx*dx + dy*dy) < 18) return i;
+  }
+  return null;
+}
 
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = col;
-                ctx.fillStyle = col;
-                ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, Math.PI*2); ctx.fill();
+// ── Режим ────────────────────────────────────────────────────────
+function switchMode(m) {
+  mode = m;
+  ['nodes','adhoc','norm'].forEach(function(id) {
+    document.getElementById('tab-'+id).classList.toggle('on', m === id);
+  });
+  var labels = {
+    nodes: 'Режим: случайное размещение узлов',
+    adhoc: 'Режим: Ad-Hoc сеть',
+    norm:  'Режим: нормированный вид топологии'
+  };
+  setLbl(labels[m]);
+  draw();
+}
 
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#000000';
-                ctx.font = 'bold 8px monospace';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(i.toString(), p[0], p[1]);
-            }
-        }
+// ── Подсчёт рёбер ────────────────────────────────────────────────
+function countEdges(adj) {
+  var t = 0;
+  Object.keys(adj).forEach(function(k) { t += (adj[k]||[]).length; });
+  return Math.round(t / 2);
+}
 
-        function startPhase(n) {
-            if (n === 1) {
-                phase = 1;
-                positions = graph.nodes.map(() => [80 + Math.random()*(W-160), 80 + Math.random()*(H-160)]);
-                updateButtons();
-                document.getElementById('status').textContent = "Фаза 1 — случайное размещение";
-            } else if (n === 2) {
-                phase = 2;
-                edgeProgress = 0;
-                updateButtons();
-                document.getElementById('status').textContent = "Фаза 2 — построение сети...";
+// ── Обновление UI ────────────────────────────────────────────────
+function updateInfo() {
+  if (!activeGraph) return;
+  var n = activeGraph.nodes.length;
+  var e = countEdges(activeGraph.adj);
+  document.getElementById('sn').textContent = n;
+  document.getElementById('se').textContent = e;
+  document.getElementById('bn').textContent = n;
+  document.getElementById('be').textContent = e;
 
-                const total = graph.edges.length;
-                let last = Date.now();
+  if (selected !== null && activeGraph.nodes.indexOf(selected) >= 0) {
+    var addr   = activeGraph.addr[selected] || '';
+    var degree = (activeGraph.adj[selected] || []).length;
+    var parts  = addr.split('').map(function(ch, i) {
+      return 'Уровень&nbsp;' + (i+1) + ':&nbsp;копия&nbsp;<code>' + ch + '</code>';
+    }).join('<br>');
+    setInfo(
+      '<b>Узел #' + selected + '</b>' +
+      'Адрес: <code>' + addr + '</code><br>' +
+      'Степень: <code>' + degree + '</code><br><br>' +
+      parts
+    );
+  } else {
+    setInfo(
+      'Узлов:&nbsp;<code>' + n + '</code><br>' +
+      'Рёбер:&nbsp;<code>' + e + '</code><br><br>' +
+      '<span style="font-size:11px;color:#a0a0a0">Кликните на узел — увидите его адрес и иерархию</span>'
+    );
+  }
+}
 
-                function anim() {
-                    const now = Date.now();
-                    edgeProgress += (now - last) / 12;
-                    last = now;
-                    if (edgeProgress < total) requestAnimationFrame(anim);
-                    else {
-                        edgeProgress = total;
-                        document.getElementById('status').textContent = "Фаза 2 завершена";
-                    }
-                    draw();
-                }
-                anim();
-            } else if (n === 3) {
-                phase = 3;
-                updateButtons();
-                document.getElementById('status').textContent = "Фаза 3 — нормализация...";
+function updateRemoveSelect() {
+  var sel = document.getElementById('removeSelect');
+  sel.innerHTML = '<option value="">— выберите узел —</option>';
+  if (!activeGraph) return;
+  activeGraph.nodes.forEach(function(n) {
+    var opt = document.createElement('option');
+    opt.value       = n;
+    opt.textContent = 'Узел ' + n + ' (' + (activeGraph.addr[n]||'') + ')';
+    sel.appendChild(opt);
+  });
+}
 
-                targetPositions = graph.fractalPos.map(p => toScreen(p[0], p[1]));
-                const start = positions.map(p => [p[0], p[1]]);
-                let t = 0;
+// ── Сброс ────────────────────────────────────────────────────────
+function doReset() {
+  activeGraph = {
+    N:       graphData.N,
+    order:   graphData.order,
+    nodes:   graphData.nodes.slice(),
+    adj:     JSON.parse(JSON.stringify(graphData.adj)),
+    addr:    Object.assign({}, graphData.addr),
+    normPos: Object.assign({}, graphData.normPos)
+  };
+  selected = null;
+  updateRemoveSelect();
+  updateInfo();
+  document.getElementById('so').textContent = graphData.order;
+  draw();
+}
 
-                function move() {
-                    t = Math.min(t + 0.028, 1);
-                    const e = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2;
-                    for (let i = 0; i < positions.length; i++) {
-                        positions[i][0] = start[i][0] + (targetPositions[i][0] - start[i][0]) * e;
-                        positions[i][1] = start[i][1] + (targetPositions[i][1] - start[i][1]) * e;
-                    }
-                    draw();
-                    if (t < 1) requestAnimationFrame(move);
-                    else document.getElementById('status').textContent = "Фаза 3 завершена";
-                }
-                move();
-            }
-        }
+// ── Генерация ────────────────────────────────────────────────────
+function changeNodeCount() {
+  var n = parseInt(document.getElementById('nodeCount').value);
+  if (isNaN(n) || n < 64) {
+    document.getElementById('nodeCount').value = 64;
+    alert('Минимум 64 узла!');
+    return;
+  }
+  setLbl('Генерация графа на ' + n + ' узлов...');
+  fetch('/rebuild', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({n: n})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function()  { return fetch('/graph').then(function(r) { return r.json(); }); })
+  .then(loadGraph)
+  .catch(function(e) { setLbl('Ошибка: ' + e); });
+}
 
-        function updateButtons() {
-            document.getElementById('btn1').disabled = phase >= 1;
-            document.getElementById('btn2').disabled = phase < 1 || phase >= 2;
-            document.getElementById('btn3').disabled = phase < 2 || phase >= 3;
+// ── Удаление узла с перестройкой ─────────────────────────────────
+function removeSelectedNode() {
+  var sel = document.getElementById('removeSelect');
+  var val = sel.value;
+  if (!val) { alert('Выберите узел!'); return; }
+  var nodeId = parseInt(val);
+  if (activeGraph.nodes.length <= 1) { alert('Нельзя удалить последний узел!'); return; }
+  activeGraph = removeNodeAndRepair(activeGraph, nodeId);
+  if (selected === nodeId) selected = null;
+  updateRemoveSelect();
+  updateInfo();
+  setLbl('Узел ' + nodeId + ' удалён. Осталось: ' + activeGraph.nodes.length);
+  draw();
+}
 
-            document.getElementById('btn1').classList.toggle('active', phase >= 1);
-            document.getElementById('btn2').classList.toggle('active', phase >= 2);
-            document.getElementById('btn3').classList.toggle('active', phase >= 3);
-        }
+function getBestBackup(clusterPrefix, brokenPort, aliveNodes, addr) {
+  var orig = aliveNodes.filter(function(n) { return (addr[n]||'').slice(-1) === brokenPort; });
+  if (orig.length) return orig[0];
+  var bps = BACKUP_MAP[brokenPort] || [];
+  for (var i = 0; i < bps.length; i++) {
+    var cands = aliveNodes.filter(function(n) { return (addr[n]||'').slice(-1) === bps[i]; });
+    if (cands.length) return cands[0];
+  }
+  return aliveNodes[0] || null;
+}
 
-        function resetAll() {
-            phase = 0;
-            edgeProgress = 0;
-            positions = [];
-            hoveredNode = -1;
-            ctx.clearRect(0, 0, W, H);
-            updateButtons();
-            document.getElementById('status').textContent = "Готов";
-            document.getElementById('info').innerHTML = "Наведите курсор на узел";
-        }
+function removeNodeAndRepair(g, nodeToRemove) {
+  var nodes = g.nodes.filter(function(n) { return n !== nodeToRemove; });
+  var nodeSet = {};
+  nodes.forEach(function(n) { nodeSet[n] = true; });
 
-        function findHovered(mx, my) {
-            let best = -1, minD = Infinity;
-            for (let i = 0; i < positions.length; i++) {
-                const p = positions[i];
-                const d = (p[0]-mx)**2 + (p[1]-my)**2;
-                if (d < minD) { minD = d; best = i; }
-            }
-            return minD < 200 ? best : -1;
-        }
+  var adj = {};
+  nodes.forEach(function(n) {
+    adj[n] = (g.adj[n]||[]).filter(function(j) { return j !== nodeToRemove; });
+  });
 
-        canvas.addEventListener('mousemove', function(e) {
-            if (!graph || positions.length === 0) return;
-            const rect = canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
-            const newH = findHovered(mx, my);
+  var addr    = Object.assign({}, g.addr);
+  var normPos = Object.assign({}, g.normPos);
 
-            if (newH !== hoveredNode) {
-                hoveredNode = newH;
-                if (hoveredNode >= 0) showNodeInfo(hoveredNode);
-                else document.getElementById('info').innerHTML = "Наведите курсор на узел";
-                draw();
-            }
+  var externalEdges = [];
+  g.nodes.forEach(function(u) {
+    (g.adj[u]||[]).forEach(function(v) {
+      if (v <= u) return;
+      var addrU = g.addr[u]||'', addrV = g.addr[v]||'';
+      if (addrU.slice(0,-1) !== addrV.slice(0,-1)) {
+        var cl = 0;
+        while (cl < addrU.length && cl < addrV.length && addrU[cl] === addrV[cl]) cl++;
+        externalEdges.push({
+          u:u, v:v,
+          clusterU: addrU.slice(0, cl+1), clusterV: addrV.slice(0, cl+1),
+          portU: addrU.slice(-1),         portV: addrV.slice(-1)
         });
+      }
+    });
+  });
 
-        function showNodeInfo(id) {
-            const node = graph.nodes[id];
-            const fp = graph.fractalPos[id];
-            const levels = node.label.split('.').map((l,i) => 
-                "<div>Уровень " + (i+1) + ": <code>" + l + "</code></div>"
-            ).join('');
+  externalEdges.forEach(function(edge) {
+    if (!nodeSet[edge.u] || !nodeSet[edge.v]) {
+      var aU = nodes.filter(function(n) { return (addr[n]||'').startsWith(edge.clusterU); });
+      var aV = nodes.filter(function(n) { return (addr[n]||'').startsWith(edge.clusterV); });
+      if (!aU.length || !aV.length) return;
+      var nU = getBestBackup(edge.clusterU, edge.portU, aU, addr);
+      var nV = getBestBackup(edge.clusterV, edge.portV, aV, addr);
+      if (nU !== null && nV !== null && nU !== nV) {
+        adj[nU] = adj[nU]||[]; adj[nV] = adj[nV]||[];
+        if (adj[nU].indexOf(nV) < 0) { adj[nU].push(nV); adj[nV].push(nU); }
+      }
+    }
+  });
 
-            document.getElementById('info').innerHTML = 
-                "<b>Узел #" + node.id + "</b><br>" +
-                "Индекс: <code>" + node.label + "</code><br>" +
-                "Позиция: <code>(" + fp[0].toFixed(3) + ", " + fp[1].toFixed(3) + ")</code><br><br>" +
-                "<b>Иерархия:</b><br>" + levels;
-        }
+  return {N:nodes.length, order:g.order, nodes:nodes, adj:adj, addr:addr, normPos:normPos};
+}
 
-        function init() {
-            resize();
-            window.addEventListener('resize', () => { resize(); if (phase >= 1) draw(); });
+// ── Helpers ──────────────────────────────────────────────────────
+function setLbl(txt)  { document.getElementById('lbl').textContent  = txt; }
+function setInfo(html){ document.getElementById('info').innerHTML    = html; }
 
-            fetch('/graph')
-                .then(r => r.json())
-                .then(data => {
-                    graph = data;
-                    nodeColors = graph.nodes.map((_,i) => getNodeColor(i));
+// ── Events ───────────────────────────────────────────────────────
+C.addEventListener('click', function(e) {
+  var rect = C.getBoundingClientRect();
+  selected = findNode(e.clientX - rect.left, e.clientY - rect.top);
+  updateInfo();
+  draw();
+});
 
-                    document.getElementById('nodes').textContent = graph.nodes.length;
-                    document.getElementById('edges').textContent = graph.edges.length;
-                    document.getElementById('order').textContent = graph.order;
+window.addEventListener('resize', function() { resizeCanvas(); draw(); });
 
-                    document.getElementById('status').textContent = "Граф загружен";
-                    resetAll();
-                    draw();
-                })
-                .catch(() => document.getElementById('status').textContent = "Ошибка загрузки");
-        }
-
-        window.onload = init;
-    </script>
+// ── Init ─────────────────────────────────────────────────────────
+resizeCanvas();
+fetch('/graph')
+  .then(function(r) { return r.json(); })
+  .then(loadGraph)
+  .catch(function(e) { setLbl('Ошибка: ' + e); setInfo('Не удалось загрузить граф'); });
+</script>
 </body>
 </html>`
